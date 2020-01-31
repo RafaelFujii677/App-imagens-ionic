@@ -7,8 +7,32 @@
 </ion-header>
 
 <ion-content>
-  <div class="ion-padding">
-    The world is your oyster.
-    <p>If you get lost, the <a target="_blank" rel="noopener" href="https://ionicframework.com/docs/">docs</a> will be your guide.</p>
-  </div>
+  <h3 *ngIf= "images.length === 0 " text-center>Please select Image</h3>
+
+  <ion-list>
+    <ion-item *ngFor= "let img of images; index as pos">
+      <ion-thumbnail slot="start">
+        <ion-img [src] = "img.path"></ion-img>
+      </ion-thumbnail>
+      <ion-label>{{ img.name }}</ion-label>
+
+      <ion-button slot="end" fill="clear" (click)= "startUpload(img)">
+        <ion-icon slot="icon-only" name="cloud-upload"></ion-icon>
+      </ion-button>
+
+      <ion-button slot="end" fill="clear" (click)= "deleteImage(img)">
+        <ion-icon slot="icon-only" name="trash"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>  
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button fill="clear" expand="full" (click)= "selectImage()">
+      <ion-icon name="camera" slot="start"></ion-icon>
+      Select Image
+    </ion-button>
+  </ion-toolbar>
+
+</ion-footer>
