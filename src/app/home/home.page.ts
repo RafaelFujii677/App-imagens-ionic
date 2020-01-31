@@ -82,6 +82,7 @@ export class HomePage implements OnInit {
         }
       },
       {
+
         text: 'Use camera',
         handler: () => {
           this.takePicture(this.camera.PictureSourceType.CAMERA);
@@ -109,6 +110,13 @@ export class HomePage implements OnInit {
       var correctPath = imagePath.substr(0, imagePath.lastIndexOf('/') + 1);
       // this.copyFileToLocalDir(correctPath, curName, this.createFileName());
     });
+  }
+
+  createFileName(){
+    var d = new Date(),
+        n = d.getTime(),
+        newFileName = n + ".jpg";
+    return newFileName;
   }
 
 }
