@@ -1,6 +1,6 @@
 import { WebView } from '@ionic-native/ionic-webview/ngx';
-import { File } from '@ionic-native/file/ngx';
-import { Camera, PictureSourceType } from '@ionic-native/camera/ngx';
+import { File, FileEntry } from '@ionic-native/file/ngx';
+import { Camera, PictureSourceType, CameraOptions } from '@ionic-native/camera/ngx';
 import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { ActionSheetController, Platform, ToastController, LoadingController } from '@ionic/angular';
 import { Storage } from '@ionic/storage';
@@ -108,9 +108,18 @@ export class HomePage implements OnInit {
     this.camera.getPicture(options).then(imagePath =>{
       var curName = imagePath.substr(imagePath.lastIndexOf('/') + 1);
       var correctPath = imagePath.substr(0, imagePath.lastIndexOf('/') + 1);
-      // this.copyFileToLocalDir(correctPath, curName, this.createFileName());
+      this.copyFileToLocalDir(correctPath, curName, this.createFileName());
     });
   }
+
+  copyFileToLocalDir(namePath, currentName, newFileName){
+    this.file.copyFile(namePath, currentName, this.file.dataDirectory, newFileName).then(_ => {
+      this.updateStoredImages(newFileName);
+    }, error =>{
+      this.presentToast('Error while storing file.');
+    });
+  }
+  
 
   createFileName(){
     var d = new Date(),
@@ -119,4 +128,83 @@ export class HomePage implements OnInit {
     return newFileName;
   }
 
+  updateStoredImages(name){
+    this.storage.get(STORAGE_KEY).then(images =>{
+      let arr = JSON.parse(images);
+      if(!arr) {
+        let newImages = [name];
+        this.storage.set(STORAGE_KEY, JSON.stringify(newImages));
+      }else{
+        arr.push(name);
+        this.storage.set(STORAGE_KEY, JSON.stringify(arr));
+      }
+
+      let filePath = this.file.dataDirectory + name;
+      let resPath = this.pathForImage(filePath);
+
+      let newEntry = {
+        name: name,
+        path: resPath,
+        filePath: filePath,
+      };
+
+      this.images = [newEntry, ...this.images];
+      this.ref.detectChanges();
+    });
+  }
+
+  deleteImage(imgEntry, position){
+    this.images.splice(position, 1);
+
+    this.storage.get(STORAGE_KEY).then(images =>{
+      let arr = JSON.parse(images);
+      let filtered = arr.filter(name => name != imgEntry.name);
+      this.storage.set(STORAGE_KEY, JSON.stringify(filtered));
+
+      var correctPath = imgEntry.filePath.substr(0, imgEntry.filePath.lastIndexOf('/') + 1);
+
+      this.file.removeFile(correctPath, imgEntry.name).then(res =>{
+        this.presentToast('File removed');
+      });
+    });
+  }
+
+  startUpload(imgEntry){
+    this.file.resolveLocalFilesystemUrl(imgEntry.filePath).then(entry =>{
+      (<FileEntry>entry).file(file => this.readFile(file));
+    }).catch(err => {
+      this.presentToast('Error while reading file.');
+    });
+
+  }
+
+  readFile(file: any){
+    const reader = new FileReader();
+    reader.onloadend = ()=>{
+      const formData = new FormData();
+      const imgBlob = new Blob([reader.result],{
+          type: file.type
+      });
+      formData.append('file', imgBlob, file.name);
+      this.uploadImageData(formData);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async uploadImageData(formData: FormData){
+    const loading = await this.loadingController.create({
+      message: 'Uploading image...',
+    });
+    await loading.present();
+
+    this.http.post('https://appOrtoLook.plague677.com.br/upload.php', formData)
+    .subscribe(res => {
+      loading.dismiss();
+      if (res['success']){
+        this.presentToast('File upload complete.')
+      }else{
+        this.presentToast('File upload failed.')
+      }
+    });
+  }
 }
