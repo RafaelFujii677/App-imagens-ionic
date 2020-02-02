@@ -1,13 +1,13 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      Ionic Blank
+      Enviar imagens
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <h3 *ngIf= "images.length === 0 " class="ion-text-center">Please select Image</h3>
+  <h3 *ngIf= "images.length === 0 " class="ion-text-center">Por favor escolha uma imagem</h3>
 
   <ion-list>
     <ion-item *ngFor= "let img of images; index as pos">
@@ -16,7 +16,7 @@
       </ion-thumbnail>
       <ion-label>{{ img.name }}</ion-label>
 
-      <ion-button slot="end" fill="clear" (click)= "startUpload(img)">
+      <ion-button *ngIf="!img.uploaded" slot="end" fill="clear" (click)= "startUpload(img)">
         <ion-icon slot="icon-only" name="cloud-upload"></ion-icon>
       </ion-button>
 
@@ -31,7 +31,7 @@
   <ion-toolbar>
     <ion-button fill="clear" expand="full" (click)= "selectImage()">
       <ion-icon name="camera" slot="start"></ion-icon>
-      Select Image
+      Selecione um imagem
     </ion-button>
   </ion-toolbar>
 

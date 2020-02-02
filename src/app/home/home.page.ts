@@ -16,6 +16,7 @@ const STORAGE_KEY = 'my_images';
 export class HomePage implements OnInit {
 
   images = [];
+  imagesDB:any = [];
 
   constructor(
     private camera: Camera,
@@ -34,6 +35,7 @@ export class HomePage implements OnInit {
     this.plt.ready().then(() => {
       this.loadStoraedImages();
     })
+    
   }
 
   loadStoraedImages() {
@@ -48,6 +50,7 @@ export class HomePage implements OnInit {
             name: img,
             path: resPath,
             filePath: filePath,
+            uploaded: false,
           });
         }
       }
@@ -74,22 +77,22 @@ export class HomePage implements OnInit {
 
   async selectImage(){
     const actionSheet = await this.actionSheetController.create({
-      header: "Select  Image source",
+      header: "Selecione um",
       buttons: [{
-        text: 'Load from Library',
+        text: 'Carregar da galeria',
         handler: () => {
           this.takePicture(this.camera.PictureSourceType.PHOTOLIBRARY);
         }
       },
       {
 
-        text: 'Use camera',
+        text: 'Usar câmera',
         handler: () => {
           this.takePicture(this.camera.PictureSourceType.CAMERA);
         }
       },
       {
-        text: 'Cancel',
+        text: 'Cancelar',
         role: 'cancel'
       }
     ]
@@ -116,7 +119,7 @@ export class HomePage implements OnInit {
     this.file.copyFile(namePath, currentName, this.file.dataDirectory, newFileName).then(_ => {
       this.updateStoredImages(newFileName);
     }, error =>{
-      this.presentToast('Error while storing file.');
+      this.presentToast('Erro ao carregar arquivo.');
     });
   }
   
@@ -124,7 +127,9 @@ export class HomePage implements OnInit {
   createFileName(){
     var d = new Date(),
         n = d.getTime(),
-        newFileName = n + ".jpg";
+        a = d.getDate(),
+        f = n + a,
+        newFileName = f + ".jpg";
     return newFileName;
   }
 
@@ -146,6 +151,7 @@ export class HomePage implements OnInit {
         name: name,
         path: resPath,
         filePath: filePath,
+        uploaded: false,
       };
 
       this.images = [newEntry, ...this.images];
@@ -164,7 +170,7 @@ export class HomePage implements OnInit {
       var correctPath = imgEntry.filePath.substr(0, imgEntry.filePath.lastIndexOf('/') + 1);
 
       this.file.removeFile(correctPath, imgEntry.name).then(res =>{
-        this.presentToast('File removed');
+        
       });
     });
   }
@@ -173,9 +179,10 @@ export class HomePage implements OnInit {
     this.file.resolveLocalFilesystemUrl(imgEntry.filePath).then(entry =>{
       (<FileEntry>entry).file(file => this.readFile(file));
     }).catch(err => {
-      this.presentToast('Error while reading file.');
+      this.presentToast('Erro ao ler arquivo.');
     });
-
+    imgEntry.uploaded = true;
+    
   }
 
   readFile(file: any){
@@ -193,7 +200,7 @@ export class HomePage implements OnInit {
 
   async uploadImageData(formData: FormData){
     const loading = await this.loadingController.create({
-      message: 'Uploading image...',
+      message: 'Enviando arquivo...',
     });
     await loading.present();
 
@@ -201,9 +208,9 @@ export class HomePage implements OnInit {
     .subscribe(res => {
       loading.dismiss();
       if (res['success']){
-        this.presentToast('File upload complete.')
+        this.presentToast('Arquivo enviado com sucesso.');
       }else{
-        this.presentToast('File upload failed.')
+        this.presentToast('Erro ao enviar arquivo.')
       }
     });
   }
