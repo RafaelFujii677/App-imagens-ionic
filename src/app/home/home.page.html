@@ -7,10 +7,18 @@
 </ion-header>
 
 <ion-content>
-  <h3 *ngIf= "images.length === 0 " class="ion-text-center">Por favor escolha uma imagem</h3>
+  <ion-refresher slot="fixed" (ionRefresh)= "doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="arrow-dropdown"
+      refreshingSpinner="circles"
+      refreshingText="Carregando...">
+    </ion-refresher-content>
+  </ion-refresher>
+  <h3>Imagens no aparelho</h3>
+  <h4 *ngIf= "images.length === 0 " >Por favor escolha uma imagem</h4>
 
-  <ion-list>
-    <ion-item *ngFor= "let img of images; index as pos">
+  <ion-list *ngFor= "let img of images; index as pos">
+    <ion-item>
       <ion-thumbnail slot="start">
         <ion-img [src] = "img.path"></ion-img>
       </ion-thumbnail>
@@ -23,8 +31,17 @@
       <ion-button slot="end" fill="clear" (click)= "deleteImage(img)">
         <ion-icon slot="icon-only" name="trash"></ion-icon>
       </ion-button>
+
     </ion-item>
   </ion-list>  
+
+  <h3 *ngIf= "imagesDB.length != 0">Imagens na nuvem</h3>
+  <ion-list *ngFor= "let imagesDB of imagesDB">
+    <ion-item>
+      <ion-img [src]= "imagesDB.caminho_img"></ion-img>
+    </ion-item>
+  </ion-list>
+  
 </ion-content>
 
 <ion-footer>

@@ -34,8 +34,8 @@ export class HomePage implements OnInit {
   ngOnInit() {
     this.plt.ready().then(() => {
       this.loadStoraedImages();
-    })
-    
+    });
+    this.downloadImageData();
   }
 
   loadStoraedImages() {
@@ -104,7 +104,7 @@ export class HomePage implements OnInit {
     var options : CameraOptions = {
       quality: 100,
       sourceType: sourceType,
-      saveToPhotoAlbum: false,
+      saveToPhotoAlbum: true,
       correctOrientation: true,
     }
 
@@ -213,5 +213,27 @@ export class HomePage implements OnInit {
         this.presentToast('Erro ao enviar arquivo.')
       }
     });
+  }
+
+  downloadImageData(){
+    return new Promise (resolve =>{
+      this.http.post('https://appOrtoLook.plague677.com.br/download.php', 'ping').subscribe(data=>{
+      if(data['success']){
+        for(let img of data['result']){
+          this.imagesDB.push(img);
+        }
+        resolve(true);
+      }
+    });
+    })
+  }
+
+  doRefresh(event) {
+    this.imagesDB = [];
+
+    setTimeout(() => {
+      this.downloadImageData();
+      event.target.complete();
+    }, 500);
   }
 }
